@@ -1,27 +1,31 @@
+/** @type {import("tailwindcss").Config} */
+
 const config = {
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
       colors: {
         daichi: {
-          bg: "#FAF8F5",       // Soft warmth off-white background
-          surface: "#FFFFFF",  // Clean white card surfaces
-          subtle: "#F2EDE4",   // Soft beige neutral for borders/dividers
-          forest: "#2D4A3E",   // Primary brand green
-          sage: "#5B7A6A",     // Secondary muted green
-          clay: "#D97757",     // Accent warm terracotta
-          sand: "#EAE3D2",     // Muted highlight tone
+          bg: "#FAF8F5",       // Warm parchment base
+          surface: "#FFFFFF",  
+          forest: "#2D4A3E",   // Forest green accent
+          sage: "#5B7A6A",     // Muted sage green
+          clay: "#D97757",     // Terracotta accent
+          sand: "#EAE3D2",     // Soft warm beige
           charcoal: "#262522", // Main text color
-          muted: "#75726B",    // Muted text
+          muted: "#75726B",    
         },
       },
       borderRadius: {
-        warm: "1.25rem",      // 20px soft rounded corners
-        "warm-lg": "1.75rem", // 28px soft rounded corners
+        warm: "1.25rem",      // 20px
+        "warm-lg": "1.75rem", // 28px
       },
       boxShadow: {
         glass: "0 8px 32px 0 rgba(45, 37, 30, 0.07)",

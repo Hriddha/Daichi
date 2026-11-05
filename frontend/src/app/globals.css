@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --bg-parchment: #FAF8F5;
@@ -8,20 +10,39 @@ body {
   background-color: var(--bg-parchment);
   color: #262522;
   overflow-x: hidden;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-/* Reusable Glassmorphism Utility */
+/* Glassmorphism Utility */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.7);
   box-shadow: 0 8px 32px 0 rgba(45, 37, 30, 0.05);
 }
 
-.glass-panel-dark {
-  background: rgba(45, 74, 62, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+/* Dynamic Ambient Green Glows */
+@keyframes ambient-pulse {
+  0%, 100% {
+    transform: scale(1) translate(0px, 0px);
+    opacity: 0.45;
+  }
+  50% {
+    transform: scale(1.12) translate(15px, -10px);
+    opacity: 0.7;
+  }
+}
+
+.animate-ambient-green {
+  animation: ambient-pulse 8s ease-in-out infinite;
+}
+
+.green-glow-hover {
+  transition: all 0.3s ease;
+}
+
+.green-glow-hover:hover {
+  border-color: rgba(45, 74, 62, 0.35);
+  box-shadow: 0 12px 30px -10px rgba(45, 74, 62, 0.25);
 }
