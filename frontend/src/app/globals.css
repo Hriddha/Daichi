@@ -1,6 +1,19 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-daichi-bg: #FAF8F5;
+  --color-daichi-surface: #FFFFFF;
+  --color-daichi-forest: #2D4A3E;
+  --color-daichi-sage: #5B7A6A;
+  --color-daichi-clay: #D97757;
+  --color-daichi-sand: #EAE3D2;
+  --color-daichi-charcoal: #262522;
+  --color-daichi-muted: #75726B;
+  --radius-warm: 1.25rem;
+  --radius-warm-lg: 1.75rem;
+  --shadow-glass: 0 8px 32px 0 rgba(45, 37, 30, 0.07);
+  --shadow-glass-hover: 0 12px 40px 0 rgba(45, 37, 30, 0.12);
+}
 
 :root {
   --bg-parchment: #FAF8F5;
