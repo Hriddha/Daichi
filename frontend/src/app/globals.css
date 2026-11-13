@@ -1,54 +1,192 @@
 @import "tailwindcss";
 
 @theme {
-  --color-daichi-bg: #FAF8F5;
-  --color-daichi-surface: #FFFFFF;
-  --color-daichi-forest: #2D4A3E;
-  --color-daichi-sage: #5B7A6A;
-  --color-daichi-clay: #D97757;
-  --color-daichi-sand: #EAE3D2;
-  --color-daichi-charcoal: #262522;
-  --color-daichi-muted: #75726B;
-  --radius-warm: 1.25rem;
-  --radius-warm-lg: 1.75rem;
-  --shadow-glass: 0 8px 32px 0 rgba(45, 37, 30, 0.07);
-  --shadow-glass-hover: 0 12px 40px 0 rgba(45, 37, 30, 0.12);
+  --color-daichi-bg: #F1F4ED;
+  --color-daichi-surface: #FBFCF8;
+  --color-daichi-forest: #234B39;
+  --color-daichi-sage: #668D74;
+  --color-daichi-clay: #B9785A;
+  --color-daichi-sand: #E4EADB;
+  --color-daichi-charcoal: #26342B;
+  --color-daichi-muted: #717B72;
+  --radius-warm: 1rem;
+  --radius-warm-lg: 1.5rem;
+  --shadow-glass: 0 12px 36px 0 rgba(34, 52, 41, 0.07);
+  --shadow-glass-hover: 0 16px 42px 0 rgba(34, 52, 41, 0.12);
 }
 
 :root {
-  --bg-parchment: #FAF8F5;
+  --bg-parchment: #F5F7F1;
 }
 
 body {
-  background-color: var(--bg-parchment);
-  color: #262522;
+  background:
+    radial-gradient(ellipse at 88% 78%, rgba(209, 250, 229, 0.62), transparent 34rem),
+    radial-gradient(ellipse at 9% 12%, rgba(254, 243, 199, 0.68), transparent 31rem),
+    radial-gradient(ellipse at 54% 46%, rgba(255, 255, 255, 0.4), transparent 42rem),
+    var(--bg-parchment);
+  color: #0F291E;
   overflow-x: hidden;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 /* Glassmorphism Utility */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  box-shadow: 0 8px 32px 0 rgba(45, 37, 30, 0.05);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  box-shadow: 0 14px 38px 0 rgba(15, 41, 30, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.95);
 }
 
-/* Dynamic Ambient Green Glows */
-@keyframes ambient-pulse {
-  0%, 100% {
-    transform: scale(1) translate(0px, 0px);
-    opacity: 0.45;
+@keyframes rice-grow {
+  0%, 8% {
+    stroke-dashoffset: 240;
+    fill-opacity: 0;
   }
-  50% {
-    transform: scale(1.12) translate(15px, -10px);
-    opacity: 0.7;
+  40%, 88% {
+    stroke-dashoffset: 0;
+    fill-opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 240;
+    fill-opacity: 0;
   }
 }
 
-.animate-ambient-green {
-  animation: ambient-pulse 8s ease-in-out infinite;
+@keyframes rice-grain-grow {
+  0%, 30% {
+    opacity: 0;
+  }
+  46%, 88% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.ambient-glow {
+  position: absolute;
+  width: 30rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  filter: blur(80px);
+}
+
+.ambient-glow--top {
+  top: -19rem;
+  left: -12rem;
+  background: rgba(254, 243, 199, 0.82);
+}
+
+.ambient-glow--bottom {
+  right: -14rem;
+  bottom: -19rem;
+  background: rgba(209, 250, 229, 0.75);
+}
+
+.growth-plant {
+  position: absolute;
+  right: clamp(1.5rem, 8vw, 8rem);
+  bottom: clamp(1rem, 6vh, 4rem);
+  width: clamp(8rem, 12vw, 10rem);
+  overflow: visible;
+  color: #568366;
+  opacity: 0.78;
+  filter: drop-shadow(0 0 10px rgba(69, 143, 94, 0.2));
+}
+
+.rice-ground,
+.rice-stem,
+.rice-blade,
+.rice-panicle-stem,
+.rice-panicle-branch,
+.rice-vein {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.rice-ground {
+  stroke-width: 1.4;
+  opacity: 0.38;
+}
+
+.rice-stem,
+.rice-blade,
+.rice-panicle-stem,
+.rice-panicle-branch {
+  stroke-width: 1.7;
+  stroke-dasharray: 240;
+  stroke-dashoffset: 240;
+  animation: rice-grow 14s ease-in-out infinite;
+}
+
+.rice-stem--main {
+  stroke-width: 2.2;
+}
+
+.rice-blade {
+  fill: rgba(107, 157, 111, 0.12);
+}
+
+.rice-blade--one {
+  animation-delay: 0.5s;
+}
+
+.rice-blade--two {
+  animation-delay: 0.8s;
+}
+
+.rice-blade--three {
+  animation-delay: 1.1s;
+}
+
+.rice-blade--four {
+  animation-delay: 1.4s;
+}
+
+.rice-panicle-stem,
+.rice-panicle-branch {
+  stroke: #8C9661;
+  animation-delay: 1.8s;
+}
+
+.rice-panicle-branch {
+  stroke-width: 1.2;
+  animation-delay: 2s;
+}
+
+.rice-grains {
+  fill: rgba(218, 183, 99, 0.3);
+  stroke: #B39A5B;
+  stroke-width: 0.9;
+  opacity: 0;
+  animation: rice-grain-grow 14s ease-in-out infinite;
+  filter: drop-shadow(0 0 4px rgba(218, 183, 99, 0.24));
+}
+
+.rice-grains--one {
+  animation-delay: 2.2s;
+}
+
+.rice-grains--two {
+  animation-delay: 2.5s;
+}
+
+.rice-vein {
+  stroke: #70906D;
+  stroke-width: 0.8;
+  opacity: 0.45;
+  stroke-dasharray: 240;
+  stroke-dashoffset: 240;
+  animation: rice-grow 14s ease-in-out 1.5s infinite;
+}
+
+.brand-leaf {
+  filter: drop-shadow(0 0 7px rgba(167, 224, 185, 0.5));
 }
 
 .green-glow-hover {
@@ -56,6 +194,37 @@ body {
 }
 
 .green-glow-hover:hover {
-  border-color: rgba(45, 74, 62, 0.35);
-  box-shadow: 0 12px 30px -10px rgba(45, 74, 62, 0.25);
+  border-color: rgba(35, 70, 56, 0.35);
+  box-shadow: 0 12px 30px -10px rgba(35, 70, 56, 0.25);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rice-stem,
+  .rice-blade,
+  .rice-panicle-stem,
+  .rice-panicle-branch,
+  .rice-grains,
+  .rice-vein {
+    animation: none;
+  }
+
+  .growth-plant {
+    opacity: 0.75;
+  }
+
+  .rice-stem,
+  .rice-blade,
+  .rice-panicle-stem,
+  .rice-panicle-branch,
+  .rice-vein {
+    stroke-dashoffset: 0;
+  }
+
+  .rice-blade {
+    fill-opacity: 1;
+  }
+
+  .rice-grains {
+    opacity: 1;
+  }
 }
