@@ -187,7 +187,33 @@ const CATEGORIES: ("All" | EntryCategory)[] = [
   "Transport",
 ];
 
-//
+// --- Smooth Rolling Number Component ---
+function RollingCurrency({
+  value,
+  prefix = "৳",
+  suffix = "",
+  decimals = 0,
+}: {
+  value: number;
+  prefix?: string;
+  suffix?: string;
+  decimals?: number;
+}) {
+  const spring = useSpring(value, { mass: 0.8, stiffness: 90, damping: 18 });
+  const display = useTransform(spring, (current) =>
+    `${prefix}${current.toLocaleString("en-US", {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    })}${suffix}`
+  );
+
+  useEffect(() => {
+    spring.set(value);
+  }, [value, spring]);
+
+  return <motion.span className="tabular-nums">{display}</motion.span>;
+}
+
 export default function FinanceLedgerPage() {
   const [harvests, setHarvests] = useState<HarvestCycle[]>(INITIAL_HARVESTS);
   const [activeHarvestId, setActiveHarvestId] = useState<string>("aman-2026");
