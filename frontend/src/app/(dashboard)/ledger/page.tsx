@@ -273,66 +273,7 @@ export default function FinanceLedgerPage() {
         0
       ) - redeemedPoints;
 
-    // Deterministic Micro-Loan Credit Limit (1.6x net profit capped at ৳120,000)
-    const maxLoanEligible = Math.min(120000, Math.max(15000, Math.round(netProfit * 1.6)));
 
-    return {
-      revenue,
-      expenses,
-      netProfit,
-      profitMargin,
-      breakdown,
-      totalPoints,
-      maxLoanEligible,
-    };
-  }, [activeHarvest, harvests, redeemedPoints]);
-
-  const filteredEntries = useMemo(() => {
-    if (selectedCategory === "All") return activeHarvest.entries;
-    return activeHarvest.entries.filter((e) => e.category === selectedCategory);
-  }, [activeHarvest, selectedCategory]);
-
-  // Add Deterministic Transaction
-  const handleAddEntry = (e: React.FormEvent) => {
-    e.preventDefault();
-    const numericAmount = parseFloat(newAmount);
-    if (!newTitle.trim() || isNaN(numericAmount) || numericAmount <= 0) return;
-
-    const isRevenue = newCategory === "Sales";
-    const earnedPts = Math.max(10, Math.round(numericAmount / 150));
-
-    const entry: LedgerEntry = {
-      id: `tx-${Date.now()}`,
-      receiptNo: `RCP-2026-${Math.floor(9000 + Math.random() * 900)}`,
-      date: "Nov 13, 2026",
-      title: newTitle.trim(),
-      counterparty: newCounterparty.trim() || "Verified Local Vendor",
-      category: newCategory,
-      type: isRevenue ? "revenue" : "expense",
-      amount: numericAmount,
-      points: earnedPts,
-      autoCaptured: true,
-    };
-
-    setHarvests((prev) =>
-      prev.map((h) =>
-        h.id === activeHarvestId ? { ...h, entries: [entry, ...h.entries] } : h
-      )
-    );
-
-    setNewTitle("");
-    setNewCounterparty("");
-    setNewAmount("");
-    setIsAddModalOpen(false);
-  };
-
-  const categoryColorMap: Record<EntryCategory, string> = {
-    Sales: "bg-emerald-500",
-    Seed: "bg-daichi-forest",
-    Fertilizer: "bg-teal-600",
-    Labor: "bg-daichi-clay",
-    Transport: "bg-amber-600",
-  };
 
   return (
     <div className="space-y-6 pb-12">
