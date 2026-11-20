@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import Image from "next/image";
 import {
   Upload,
   Scan,
@@ -57,7 +58,6 @@ interface SampleLeafPreset {
   labelBn: string;
   badge: string;
   accentColor: string;
-  svgPattern: "potato-blight" | "rice-blight" | "ambiguous-leaf";
   diagnosis: ScanDiagnosis;
 }
 
@@ -69,7 +69,6 @@ const SAMPLE_PRESETS: SampleLeafPreset[] = [
     labelBn: "আলুর পাতা",
     badge: "94.8% Match",
     accentColor: "#D97757",
-    svgPattern: "potato-blight",
     diagnosis: {
       id: "diag-01",
       cropName: "Potato (Granola)",
@@ -108,7 +107,6 @@ const SAMPLE_PRESETS: SampleLeafPreset[] = [
     labelBn: "ধানের পাতা",
     badge: "91.4% Match",
     accentColor: "#2D4A3E",
-    svgPattern: "rice-blight",
     diagnosis: {
       id: "diag-02",
       cropName: "BRRI Dhan-28 Rice",
@@ -147,7 +145,6 @@ const SAMPLE_PRESETS: SampleLeafPreset[] = [
     labelBn: "অস্পষ্ট লক্ষণ",
     badge: "58.2% Low Conf.",
     accentColor: "#B45309",
-    svgPattern: "ambiguous-leaf",
     diagnosis: {
       id: "diag-03",
       cropName: "Tomato / Chili Foliage",
@@ -181,81 +178,9 @@ const SAMPLE_PRESETS: SampleLeafPreset[] = [
   },
 ];
 
-// --- Tactile Leaf Specimen SVG Preview ---
-function LeafSpecimenArtwork({ pattern }: { pattern: SampleLeafPreset["svgPattern"] }) {
-  return (
-    <div className="w-full h-52 rounded-warm bg-gradient-to-br from-[#EFECE4] to-[#E3DDD0] border border-daichi-charcoal/10 flex items-center justify-center relative overflow-hidden">
-      <svg viewBox="0 0 240 160" className="w-56 h-40 drop-shadow-sm">
-        {/* Leaf Silhouette */}
-        <path
-          d={
-            pattern === "rice-blight"
-              ? "M25,135 Q95,45 215,25 Q155,95 25,135 Z"
-              : "M45,130 C35,70 95,25 195,30 C190,105 125,140 45,130 Z"
-          }
-          fill={pattern === "rice-blight" ? "#4A7C59" : "#3E6B4C"}
-        />
-        {/* Central Leaf Vein */}
-        <path
-          d={
-            pattern === "rice-blight"
-              ? "M25,135 Q115,75 215,25"
-              : "M45,130 Q115,82 195,30"
-          }
-          stroke="#A3C4A8"
-          strokeWidth="2.5"
-          fill="none"
-        />
-
-        {/* Disease Lesions based on Preset */}
-        {pattern === "potato-blight" && (
-          <>
-            <circle cx="110" cy="68" r="11" fill="#7C3F2C" opacity="0.85" />
-            <circle cx="110" cy="68" r="6" fill="#3D1E14" opacity="0.9" />
-            <circle cx="145" cy="82" r="9" fill="#8C4A32" opacity="0.85" />
-            <circle cx="88" cy="96" r="7" fill="#7C3F2C" opacity="0.8" />
-          </>
-        )}
-
-        {pattern === "rice-blight" && (
-          <>
-            <path
-              d="M140,42 Q175,32 215,25 Q185,55 150,62 Z"
-              fill="#D9A05B"
-              opacity="0.9"
-            />
-            <path
-              d="M110,65 Q135,55 155,58 Q135,78 112,82 Z"
-              fill="#C88A3B"
-              opacity="0.75"
-            />
-          </>
-        )}
-
-        {pattern === "ambiguous-leaf" && (
-          <>
-            <circle cx="120" cy="75" r="18" fill="#C9A227" opacity="0.45" />
-            <path
-              d="M135,45 Q165,65 150,95"
-              stroke="#D97757"
-              strokeWidth="4"
-              strokeLinecap="round"
-              fill="none"
-              opacity="0.7"
-            />
-          </>
-        )}
-      </svg>
-
-      <span className="absolute bottom-2.5 right-3 text-[10px] font-mono px-2 py-0.5 rounded bg-white/75 text-daichi-charcoal border border-daichi-charcoal/10">
-        224×224 RGB Tensor Ready
-      </span>
-    </div>
-  );
-}
-
 export default function CropScannerPage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const prefersReducedMotion = useReducedMotion();
 
   const [selectedPreset, setSelectedPreset] = useState<SampleLeafPreset>(SAMPLE_PRESETS[0]);
   const [uploadedPreviewUrl, setUploadedPreviewUrl] = useState<string | null>(null);
@@ -400,7 +325,16 @@ export default function CropScannerPage() {
                   />
                 </div>
               ) : (
-                <LeafSpecimenArtwork pattern={selectedPreset.svgPattern} />
+                <Image
+                  src="/leaf-specimen.jpg"
+                  alt="Real green leaves photographed in the field"
+                  width={1125}
+                  height={3000}
+                  sizes="(min-width: 1024px) 42vw, 100vw"
+                  priority
+                  className="w-full h-52 object-cover object-center"
+                  draggable={false}
+                />
               )}
 
               {/* Hover Upload Overlay */}
@@ -421,16 +355,29 @@ export default function CropScannerPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="absolute inset-0 bg-daichi-forest/35 backdrop-blur-[2px] flex flex-col items-center justify-center"
+                    className="absolute inset-0 bg-daichi-forest/10"
+                    role="status"
+                    aria-live="polite"
                   >
                     <motion.div
-                      animate={{ y: [-85, 85, -85] }}
-                      transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-                      className="w-full h-1 bg-emerald-300 shadow-[0_0_16px_#6ee7b7]"
+                      initial={{ top: prefersReducedMotion ? "50%" : "0%" }}
+                      animate={{ top: prefersReducedMotion ? "50%" : "100%" }}
+                      transition={{ duration: prefersReducedMotion ? 0 : 1.35, ease: "linear" }}
+                      className="absolute inset-x-0 h-8 bg-gradient-to-b from-transparent via-emerald-300/20 to-transparent"
+                      aria-hidden="true"
                     />
-                    <div className="absolute bottom-3 px-3 py-1 rounded-full bg-daichi-forest text-white text-[11px] font-bold flex items-center gap-2 shadow">
-                      <Scan className="w-3.5 h-3.5 text-emerald-300 animate-spin" />
-                      <span>Running EfficientNet-ONNX...</span>
+                    <motion.div
+                      initial={{ top: prefersReducedMotion ? "50%" : "0%" }}
+                      animate={{ top: prefersReducedMotion ? "50%" : "100%" }}
+                      transition={{ duration: prefersReducedMotion ? 0 : 1.35, ease: "linear" }}
+                      className="absolute inset-x-0 h-px bg-emerald-200 shadow-[0_0_12px_2px_rgba(110,231,183,0.8)]"
+                      aria-hidden="true"
+                    />
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-daichi-forest text-white text-[11px] font-bold flex items-center gap-2">
+                      <Scan
+                        className={`w-3.5 h-3.5 text-emerald-300 ${prefersReducedMotion ? "" : "animate-spin"}`}
+                      />
+                      <span>Scanning leaf...</span>
                     </div>
                   </motion.div>
                 )}
