@@ -32,3 +32,17 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     )
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+def decode_access_token(token: str) -> Optional[dict]:
+    try:
+        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    except JWTError:
+        return None
+
+
+def verify_google_id_token(token: str) -> dict:
+    if not GOOGLE_CLIENT_ID or GOOGLE_CLIENT_ID.startswith("your-google"):
+        raise ValueError("GOOGLE_CLIENT_ID not configured")
+    return id_token.verify_oauth2_token(
+        token, google_requests.Request(), GOOGLE_CLIENT_ID
+    )
