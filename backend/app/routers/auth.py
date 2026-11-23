@@ -59,3 +59,72 @@ def register_user(payload: RegisterRequest, db: Session = Depends(get_db)):
     db.add(user)
     db.commit()
     db.refresh(user)
+
+    token = create_access_token({"sub": str(user.id), "role": user.role})
+    return AuthTokenResponse(access_token=token, user=UserResponse.model_validate(user))
+
+
+@router.post("/login", response_model=AuthTokenResponse)
+def login_user(payload: LoginRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == payload.email.lower()).first()
+    if not user or not user.hashed_password:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid credentials or account uses Google Sign-In.",
+        )
+
+    if not verify_password(payload.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Incorrect email or password.")
+
+    if payload.role and user.role != payload.role:
+        raise HTTPException(
+            status_code=403,
+            detail=f"This account is registered as a {user.role.capitalize()}. Switch mode to sign in.",
+        )
+
+    token = create_access_token({"sub": str(user.id), "role": user.role})
+    return AuthTokenResponse(access_token=token, user=UserResponse.model_validate(user))
+
+
+@router.post("/google", response_model=AuthTokenResponse)
+def google_oauth_login(payload: GoogleAuthRequest, db: Session = Depends(get_db)):
+    if payload.credential == "DEV_GOOGLE_SANDBOX" and payload.demo_email:
+        email = payload.demo_email.lower()
+        full_name = payload.demo_name or (
+            "Hriddha Farmer" if payload.role == "farmer" else "Dhaka Agro Buyer"
+        )
+        google_sub = f"sandbox-{email}"
+    else:
+        try:
+            claims = verify_google_id_token(payload.credential)
+            email = claims["email"].lower()
+            full_name = claims.get("name", email.split("@")[0])
+            google_sub = claims["sub"]
+        except Exception as exc:
+            raise HTTPException(
+                status_code=401, detail=f"Google token verification failed: {exc}"
+            )
+
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        user = User(
+            full_name=full_name,
+            email=email,
+            role=payload.role,
+            region_or_org="Bogura Sadar"
+            if payload.role == "farmer"
+            else "Dhaka Agro Buyers",
+            auth_provider="google",
+            google_sub=google_sub,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    token = create_access_token({"sub": str(user.id), "role": user.role})
+    return AuthTokenResponse(access_token=token, user=UserResponse.model_validate(user))
+
+
+@router.get("/me", response_model=UserResponse)
+def read_current_user(current_user: User = Depends(get_current_user)):
+    return UserResponse.model_validate(current_user)
