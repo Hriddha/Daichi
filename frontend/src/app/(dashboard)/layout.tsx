@@ -1,4 +1,5 @@
 import Sidebar from "../../components/layout/Sidebar";
+import AuthGuard from "../components/auth/AuthGuard";
 import { DaichiProvider } from "@/app/context/DaichiContext";
 
 export default function DashboardLayout({
@@ -8,6 +9,7 @@ export default function DashboardLayout({
 }) {
   return (
     <DaichiProvider>
+      <AuthGuard>
       <div className="relative flex min-h-screen flex-col overflow-hidden bg-daichi-bg md:flex-row">
         <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
           <div className="ambient-glow ambient-glow--top" />
@@ -49,6 +51,7 @@ export default function DashboardLayout({
           <div className="max-w-5xl mx-auto space-y-6">{children}</div>
         </main>
       </div>
+      </AuthGuard>
     </DaichiProvider>
   );
 }
