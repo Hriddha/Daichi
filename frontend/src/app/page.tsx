@@ -1,14 +1,25 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ArrowDown,
   ArrowRight,
   CloudSun,
   Leaf,
+  LogOut,
   ScanLine,
   Store,
   Wallet,
 } from "lucide-react";
 import GlassCard from "../components/ui/GlassCard";
+
+type StoredUser = {
+  full_name: string;
+  email: string;
+  role: "farmer" | "bidder";
+  region_or_org?: string;
+};
 
 const tools = [
   {
@@ -90,6 +101,26 @@ function FieldIllustration() {
 }
 
 export default function LandingPage() {
+  const [loggedInUser, setLoggedInUser] = useState<StoredUser | null>(null);
+
+  useEffect(() => {
+    const raw = localStorage.getItem("daichi_user");
+    const token = localStorage.getItem("daichi_token");
+    if (raw && token) {
+      try {
+        setLoggedInUser(JSON.parse(raw));
+      } catch {
+        setLoggedInUser(null);
+      }
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("daichi_token");
+    localStorage.removeItem("daichi_user");
+    setLoggedInUser(null);
+  };
+
   return (
     <main className="min-h-screen bg-daichi-bg text-daichi-charcoal">
       <header className="mx-auto flex max-w-7xl items-center justify-between border-b border-daichi-forest/15 px-5 py-5 sm:px-8 lg:px-12">
@@ -104,12 +135,44 @@ export default function LandingPage() {
             </span>
           </span>
         </Link>
-        <Link
-          href="/marketplace"
-          className="inline-flex items-center gap-2 border-b border-daichi-forest pb-1 text-xs font-semibold text-daichi-forest transition-colors hover:text-daichi-clay sm:text-sm"
-        >
-          Go to marketplace <ArrowRight aria-hidden="true" className="h-4 w-4" />
-        </Link>
+
+        <div className="flex items-center gap-4 sm:gap-5">
+          {loggedInUser ? (
+            <>
+              <Link
+                href="/marketplace"
+                className="inline-flex items-center gap-2 bg-daichi-forest px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#243c32] sm:text-sm"
+              >
+                <span>Open workspace ({loggedInUser.full_name.split(" ")[0]})</span>
+                <ArrowRight aria-hidden="true" className="h-4 w-4" />
+              </Link>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-daichi-clay hover:underline cursor-pointer"
+              >
+                <LogOut aria-hidden="true" className="h-3.5 w-3.5" />
+                <span>Sign out</span>
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="text-xs font-semibold text-daichi-charcoal transition-colors hover:text-daichi-forest sm:text-sm"
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-2 bg-daichi-forest px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#243c32] sm:text-sm"
+              >
+                <span>Get started</span>
+                <ArrowRight aria-hidden="true" className="h-4 w-4" />
+              </Link>
+            </>
+          )}
+        </div>
       </header>
 
       <section className="mx-auto grid max-w-7xl items-center gap-9 px-5 pb-14 pt-10 sm:px-8 sm:pb-20 sm:pt-14 lg:grid-cols-[1fr_0.92fr] lg:gap-16 lg:px-12 lg:pb-24 lg:pt-20">
@@ -128,10 +191,11 @@ export default function LandingPage() {
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-x-7 gap-y-4 sm:mt-10">
             <Link
-              href="/marketplace"
+              href={loggedInUser ? "/marketplace" : "/login"}
               className="inline-flex items-center gap-3 bg-daichi-forest px-5 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#243c32]"
             >
-              Find a buyer <ArrowRight aria-hidden="true" className="h-4 w-4" />
+              {loggedInUser ? "Go to marketplace" : "Find a buyer"}{" "}
+              <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
             <a
               href="#tools"
@@ -171,7 +235,7 @@ export default function LandingPage() {
               return (
                 <Link
                   key={tool.number}
-                  href={tool.href}
+                  href={loggedInUser ? tool.href : "/login"}
                   className="group rounded-warm-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-daichi-forest focus-visible:ring-offset-2"
                 >
                   <GlassCard className="flex h-full min-h-56 flex-col border border-daichi-forest/10 bg-white/65 p-5 sm:p-6">
@@ -192,8 +256,8 @@ export default function LandingPage() {
                     <span className="mt-auto inline-flex items-center gap-2 pt-5 text-xs font-semibold text-daichi-forest">
                       {tool.link}
                       <ArrowRight
-                      aria-hidden="true"
-                      className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1"
+                        aria-hidden="true"
+                        className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1"
                       />
                     </span>
                   </GlassCard>
