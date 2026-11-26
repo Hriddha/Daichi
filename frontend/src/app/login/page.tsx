@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { GoogleOAuthProvider, GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import {
   Leaf,
   Sprout,
@@ -22,6 +23,7 @@ type UserRole = "farmer" | "bidder";
 type AuthMode = "login" | "register";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
 
 function AgritechStoryIllustration({ role }: { role: UserRole }) {
   const isFarmer = role === "farmer";
@@ -189,7 +191,7 @@ function AgritechStoryIllustration({ role }: { role: UserRole }) {
   );
 }
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
 
   const [role, setRole] = useState<UserRole>("farmer");
@@ -249,32 +251,32 @@ export default function LoginPage() {
 
       completeAuthSession(data);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Unable to connect to Daichi server.";
+      const message =
+        err instanceof Error ? err.message : "Unable to connect to Daichi server.";
       setErrorMsg(message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleAuth = async () => {
+  // Real Google Identity Services Callback
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     setErrorMsg(null);
     setSuccessMsg(null);
+
+    if (!credentialResponse.credential) {
+      setErrorMsg("Google did not return a valid credential token.");
+      return;
+    }
+
     setLoading(true);
-
     try {
-      const demoEmail =
-        role === "farmer" ? "hriddha.farmer@gmail.com" : "dhaka.agro.buyer@gmail.com";
-      const demoName =
-        role === "farmer" ? "Hriddha Pratim Saha" : "Dhaka Agro Wholesalers";
-
       const res = await fetch(`${API_BASE}/api/auth/google`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          credential: "DEV_GOOGLE_SANDBOX",
+          credential: credentialResponse.credential,
           role,
-          demo_email: demoEmail,
-          demo_name: demoName,
         }),
       });
 
@@ -286,14 +288,15 @@ export default function LoginPage() {
       completeAuthSession(data);
     } catch (err: unknown) {
       const message =
-        err instanceof Error
-          ? err.message
-          : "Make sure the FastAPI server is running on port 8000.";
+        err instanceof Error ? err.message : "Failed to verify Google account.";
       setErrorMsg(message);
     } finally {
       setLoading(false);
     }
   };
+
+  const isGoogleConfigured =
+    GOOGLE_CLIENT_ID && !GOOGLE_CLIENT_ID.startsWith("your-google");
 
   return (
     <div className="min-h-screen bg-daichi-bg text-daichi-charcoal flex items-center justify-center p-4 md:p-8 relative overflow-hidden">
@@ -311,6 +314,7 @@ export default function LoginPage() {
         </div>
 
         <div className="lg:col-span-6 p-7 sm:p-10 md:p-12 flex flex-col justify-center space-y-6 bg-[#FCFBF9]">
+          {/* Dual-Role Switcher */}
           <div className="space-y-2">
             <span className="text-[11px] font-bold uppercase tracking-wider text-daichi-muted block">
               Select Account Mode
@@ -375,34 +379,29 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <button
-            type="button"
-            disabled={loading}
-            onClick={handleGoogleAuth}
-            className="w-full py-3 px-4 rounded-warm bg-white hover:bg-daichi-sand/30 border border-daichi-charcoal/15 shadow-xs text-xs font-bold text-daichi-charcoal flex items-center justify-center gap-3 transition cursor-pointer disabled:opacity-50"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24">
-              <path
-                fill="#4285F4"
-                d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"
-              />
-              <path
-                fill="#34A853"
-                d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24Z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14Z"
-              />
-              <path
-                fill="#EA4335"
-                d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96Z"
-              />
-            </svg>
-            <span>
-              Continue with Google as {role === "farmer" ? "Farmer" : "Bidder"}
-            </span>
-          </button>
+          {/* Official Google Sign-In Popup Button */}
+          <div className="w-full flex flex-col items-center">
+            {isGoogleConfigured ? (
+              <div className="w-full flex justify-center">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() =>
+                    setErrorMsg("Google Sign-In popup was closed or failed.")
+                  }
+                  text="continue_with"
+                  shape="rectangular"
+                  size="large"
+                  width="380"
+                />
+              </div>
+            ) : (
+              <div className="w-full p-3 rounded-warm bg-amber-500/10 border border-amber-500/30 text-amber-900 text-xs">
+                Add <code>NEXT_PUBLIC_GOOGLE_CLIENT_ID</code> in{" "}
+                <code>frontend/.env.local</code> and restart Next.js to activate the
+                Google account chooser.
+              </div>
+            )}
+          </div>
 
           <div className="relative flex items-center justify-center">
             <div className="border-t border-daichi-charcoal/10 w-full" />
@@ -558,5 +557,13 @@ export default function LoginPage() {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID || "placeholder"}>
+      <LoginContent />
+    </GoogleOAuthProvider>
   );
 }
