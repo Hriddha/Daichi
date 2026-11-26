@@ -85,28 +85,30 @@ def login_user(payload: LoginRequest, db: Session = Depends(get_db)):
     token = create_access_token({"sub": str(user.id), "role": user.role})
     return AuthTokenResponse(access_token=token, user=UserResponse.model_validate(user))
 
-
 @router.post("/google", response_model=AuthTokenResponse)
 def google_oauth_login(payload: GoogleAuthRequest, db: Session = Depends(get_db)):
-    if payload.credential == "DEV_GOOGLE_SANDBOX" and payload.demo_email:
-        email = payload.demo_email.lower()
-        full_name = payload.demo_name or (
-            "Hriddha Farmer" if payload.role == "farmer" else "Dhaka Agro Buyer"
+    try:
+        claims = verify_google_id_token(payload.credential)
+        email = claims["email"].lower()
+        full_name = claims.get("name") or email.split("@")[0]
+        google_sub = claims["sub"]
+    except Exception as exc:
+        raise HTTPException(
+            status_code=401,
+            detail=f"Google token verification failed: {exc}",
         )
-        google_sub = f"sandbox-{email}"
-    else:
-        try:
-            claims = verify_google_id_token(payload.credential)
-            email = claims["email"].lower()
-            full_name = claims.get("name", email.split("@")[0])
-            google_sub = claims["sub"]
-        except Exception as exc:
-            raise HTTPException(
-                status_code=401, detail=f"Google token verification failed: {exc}"
-            )
 
     user = db.query(User).filter(User.email == email).first()
-    if not user:
+
+    if user:
+        # Enforce role check if user already registered under the opposite role
+        if payload.role and user.role != payload.role:
+            raise HTTPException(
+                status_code=403,
+                detail=f"This Google account is already registered as a {user.role.capitalize()}. Switch mode at the top to sign in.",
+            )
+    else:
+        # First-time Google Sign-Up creates a new row in PostgreSQL with the chosen role
         user = User(
             full_name=full_name,
             email=email,
